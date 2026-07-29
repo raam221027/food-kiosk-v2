@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('modifier_groups', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->enum('Admin', 'Manager', 'Cashier', 'Kitchen');
-            $table->string('guard_name');
+            $table->foreignId('restaurant_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->integer('min_selection')->default(0);
+            $table->integer('max_selection')->default(0);
+            $table->boolean('is_required')->default(false);
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('modifier_groups');
     }
 };

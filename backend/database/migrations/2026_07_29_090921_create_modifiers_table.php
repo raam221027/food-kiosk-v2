@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('modifiers', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->enum('Admin', 'Manager', 'Cashier', 'Kitchen');
-            $table->string('guard_name');
+            $table->foreignId('modifier_group_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->decimal('price', 8, 2)->default(0);
+            $table->boolean('is_available')->default(true);
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('modifiers');
     }
 };
