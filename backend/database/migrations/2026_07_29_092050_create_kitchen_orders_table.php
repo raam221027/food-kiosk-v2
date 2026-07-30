@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('kitchen_orders', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_id')->constrained()->restrictOnDelete();
+            $table->enum('status', ['pending', 'preparing', 'ready', 'completed'])->default('pending');
+            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });
     }

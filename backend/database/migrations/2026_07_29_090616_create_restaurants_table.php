@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('tax_id')->unique();
             $table->string('logo')->nullable();
             $table->string('website')->nullable();
-            $table->string('timzone')->default('UTC');
+            $table->string('timezone')->default('UTC');
             $table->string('currency')->default('USD');
             $table->string('language')->default('en');
             $table->boolean('status')->default(true);

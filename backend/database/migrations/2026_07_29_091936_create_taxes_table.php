@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->restrictOnDelete();
+            $table->string('name');
+            $table->decimal('rate', 5, 2);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

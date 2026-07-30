@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->cascadeOnDelete();
+            $table->string('key');
+            $table->text('value')->nullable();
             $table->timestamps();
+
+            // The key is unique per restaurant
+            $table->unique(['restaurant_id', 'key']);
+
         });
     }
 

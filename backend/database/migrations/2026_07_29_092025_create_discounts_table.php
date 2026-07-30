@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->restrictOnDelete();
+            $table->string('name');
+            $table->enum('discount_type', ['percentage', 'fixed_amount']);
+            $table->decimal('value', 10, 2);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

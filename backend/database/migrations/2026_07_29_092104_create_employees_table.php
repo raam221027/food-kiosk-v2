@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->restrictOnDelete();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->string('first_name', 50);
+            $table->string('last_name', 50);
+            $table->string('email', 100)->unique();
+            $table->string('phone', 20)->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->date('hired_at')->nullable();
+            $table->index(['restaurant_id', 'is_active']);
             $table->timestamps();
         });
     }

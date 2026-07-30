@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->enum('type', ['kiosk', 'tablet', 'mobile', 'other']);
+            $table->string('device_code')->unique();
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
         });
     }

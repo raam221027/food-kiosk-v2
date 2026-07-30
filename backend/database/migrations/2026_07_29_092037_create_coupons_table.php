@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('coupons', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->restrictOnDelete();
+            $table->string('code')->unique();
+            $table->enum('coupon_type', ['percentage', 'fixed_amount']);
+            $table->decimal('discount_value', 10, 2);
+            $table->dateTime('valid_from');
+            $table->dateTime('valid_until');
+            $table->integer('usage_limit')->nullable();
+            $table->integer('used_count')->default(0);
             $table->timestamps();
         });
     }

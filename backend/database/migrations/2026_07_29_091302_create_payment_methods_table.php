@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->restrictOnDelete();
+            $table->string('name');
+            $table->enum('type', ['cash', 'card', 'mobile_payment', 'other']);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

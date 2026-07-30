@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('inventory', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('restaurant_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('variant_id')->nullable()->constrained('product_variants')->cascadeOnDelete();
+            $table->integer('quantity')->default(0);
+            $table->enum('unit', ['piece', 'lbs', 'liter', 'box', 'other'])->default('piece');
+            $table->decimal('cost_price', 10, 2)->default(0.00);
+            $table->decimal('minimum_stock', 10, 2)->default(0.00);
             $table->timestamps();
         });
     }
