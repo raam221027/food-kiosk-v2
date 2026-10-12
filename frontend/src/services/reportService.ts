@@ -1,6 +1,8 @@
 import api from './api';
+import type { SalesReport } from '@/admin/domain';
 
-export const getSalesReport = async () => {
-    const response = await api.get("/reports/sales");
-    return response.data;
+/** Sales and operations for a date range (YYYY-MM-DD, inclusive). */
+export const getSalesReport = async (range?: { from: string; to: string }): Promise<SalesReport> => {
+    const response = await api.get("/manager/reports/sales", { params: range });
+    return response.data.data;
 }

@@ -1,9 +1,19 @@
 import CIcon from '@coreui/icons-react'
-import { cilCart, cilFastfood, cilSpeedometer } from '@coreui/icons'
-import { CNavItem } from '@coreui/react'
+import {
+  cilCart,
+  cilChartLine,
+  cilFastfood,
+  cilLayers,
+  cilList,
+  cilPlus,
+  cilSpeedometer,
+} from '@coreui/icons'
+import { CNavItem, CNavTitle } from '@coreui/react'
 
 import { ROLES } from '@/auth/roles'
 import type { NavItem } from './types'
+
+const MENU_ROLES = [ROLES.ADMIN, ROLES.MANAGER]
 
 /**
  * Sidebar navigation tree.
@@ -33,10 +43,47 @@ const _nav: NavItem[] = [
     roles: [ROLES.MANAGER],
   },
   {
+    component: CNavTitle,
+    name: 'Menu',
+    roles: MENU_ROLES,
+  },
+  {
+    component: CNavItem,
+    name: 'Products',
+    to: '/menu/products',
+    icon: <CIcon icon={cilFastfood} customClassName="nav-icon" />,
+    roles: MENU_ROLES,
+  },
+  {
+    component: CNavItem,
+    name: 'Categories',
+    to: '/menu/categories',
+    icon: <CIcon icon={cilLayers} customClassName="nav-icon" />,
+    roles: MENU_ROLES,
+  },
+  {
+    component: CNavItem,
+    name: 'Add-ons',
+    to: '/menu/add-ons',
+    icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
+    roles: MENU_ROLES,
+  },
+  {
+    component: CNavItem,
+    name: 'Reports',
+    to: '/reports',
+    icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
+    roles: MENU_ROLES,
+  },
+  {
+    component: CNavTitle,
+    name: 'Operations',
+  },
+  {
     component: CNavItem,
     name: 'Kitchen',
     to: '/kitchen',
-    icon: <CIcon icon={cilFastfood} customClassName="nav-icon" />,
+    icon: <CIcon icon={cilList} customClassName="nav-icon" />,
     roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.KITCHEN],
   },
   {

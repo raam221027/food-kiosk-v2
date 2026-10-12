@@ -17,7 +17,6 @@ import { humanize } from '../../utils/format'
 import avatar8 from './../../assets/images/avatars/8.jpg'
 
 const AppHeaderDropdown = () => {
-  const user = useAuth((state) => state.user)
   const role = useAuth((state) => state.role)
   const signOut = useAuth((state) => state.signOut)
   const navigate = useNavigate()
@@ -44,11 +43,6 @@ const AppHeaderDropdown = () => {
             </CBadge>
           )}
         </CDropdownItem>
-        {user?.email && (
-          <CDropdownItem as="div" className="text-body-secondary small text-truncate">
-            {user.email}
-          </CDropdownItem>
-        )}
         <CDropdownDivider />
         <CDropdownItem role="button" onClick={handleLogout}>
           <CIcon icon={cilAccountLogout} className="me-2" />

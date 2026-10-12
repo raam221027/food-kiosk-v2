@@ -46,7 +46,9 @@ import {
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
-import { ADMIN_BASE, useAdminUi } from '../store'
+import { useAdminUi } from '../store'
+import { homeFor } from '@/auth/roles'
+import { useAuth } from '@/auth/useAuth'
 
 /**
  * AppHeader functional component
@@ -62,6 +64,7 @@ import { ADMIN_BASE, useAdminUi } from '../store'
 const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null)
   const { colorMode, setColorMode } = useColorModes('food-kiosk-admin-theme')
+  const role = useAuth((state) => state.role)
 
   const sidebarShow = useAdminUi((state) => state.sidebarShow)
   const setSidebarShow = useAdminUi((state) => state.setSidebarShow)
@@ -87,7 +90,7 @@ const AppHeader = () => {
         </CHeaderToggler>
         <CHeaderNav className="d-none d-md-flex">
           <CNavItem>
-            <CNavLink to={`${ADMIN_BASE}/dashboard`} as={NavLink}>
+            <CNavLink to={homeFor(role)} as={NavLink}>
               Dashboard
             </CNavLink>
           </CNavItem>

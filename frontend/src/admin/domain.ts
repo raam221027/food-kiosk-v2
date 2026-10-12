@@ -42,6 +42,8 @@ export interface Category {
   description?: string | null
   sort_order: number
   is_active: boolean
+  /** Every regular product must come in Small, Medium and Large (Fries, Drinks). */
+  requires_size?: boolean
   /** Convenience counter the API may append; not a column. */
   products_count?: number
 }
@@ -55,8 +57,26 @@ export interface Product {
   image?: string | null
   price: number
   sku: string
+  /** In stock. An active product that is not available shows as "Sold out". */
   is_available: boolean
-  category?: Pick<Category, 'id' | 'name'>
+  /** Shown on the kiosk at all. Optional because older payloads lack it. */
+  is_active?: boolean
+  is_combo?: boolean
+  category?: Pick<Category, 'id' | 'name' | 'requires_size'>
+  /** Sizes. */
+  variants?: ProductVariant[]
+  /** Add-on groups offered with the product. */
+  modifier_groups?: (Pick<ModifierGroup, 'id' | 'name'> & Partial<ModifierGroup>)[]
+  /** Components of a combo meal. */
+  combo_items?: ComboItem[]
+}
+
+export interface ComboItem {
+  id: number
+  combo_id: number
+  product_id: number
+  quantity: number
+  product?: Pick<Product, 'id' | 'name' | 'price'>
 }
 
 export interface ProductVariant {
@@ -76,6 +96,8 @@ export interface ModifierGroup {
   max_selection: number
   is_required: boolean
   modifiers?: Modifier[]
+  /** Number of products offering this group, appended by the manager API. */
+  products_count?: number
 }
 
 export interface Modifier {
@@ -241,4 +263,32 @@ export interface AuditLog {
   ip_address?: string | null
   created_at: string
   user_name?: string
+}
+
+/** Payload of GET /api/manager/reports/sales. Money values are plain numbers. */
+export interface SalesReport {
+  range: { from: string; to: string }
+  summary: {
+    revenue: number
+    net_sales: number
+    tax: number
+    discounts: number
+    orders: number
+    average_ticket: number
+    cancelled: number
+    cancel_rate: number
+  }
+  daily: { date: string; orders: number; revenue: number }[]
+  hourly: { hour: number; orders: number }[]
+  by_order_type: { order_type: OrderType; orders: number; revenue: number }[]
+  by_status: Partial<Record<OrderStatus, number>>
+  top_products: { product_id: number; name: string; sold: number; revenue: number }[]
+  by_category: { category_id: number; name: string; sold: number; revenue: number }[]
+  payment_methods: { name: string; type: PaymentMethodType; payments: number; amount: number }[]
+  kitchen: {
+    tickets: number
+    average_prep_minutes: number | null
+    longest_prep_minutes: number | null
+  }
+  menu: { total: number; hidden: number; sold_out: number }
 }

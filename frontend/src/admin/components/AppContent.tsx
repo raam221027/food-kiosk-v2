@@ -22,7 +22,6 @@ import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { CAlert, CContainer, CSpinner } from '@coreui/react'
 
-import { ADMIN_BASE } from '../store'
 import { homeFor } from '@/auth/roles'
 import { useAuth } from '@/auth/useAuth'
 
@@ -62,9 +61,10 @@ const AppContent = () => {
     (route) => !route.roles || (role !== null && route.roles.includes(role)),
   )
 
-  // Paths are relative inside this <Routes>, but homeFor returns an absolute
-  // '/admin/...' path, so strip the shell prefix.
-  const fallbackPath = homeFor(role).replace(`${ADMIN_BASE}/`, '')
+  // Keep this absolute. A relative target inside the catch-all route resolves
+  // against the current URL, so an unmatched '/admin/dashboard' would bounce to
+  // '/admin/dashboard/manager', then '.../manager/manager', forever.
+  const fallbackPath = homeFor(role)
 
   return (
     <CContainer className="px-4" lg>

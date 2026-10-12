@@ -10,6 +10,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Customer kiosk palette (src/kiosk) — bold fast-food colours, kept apart from
+   the neutral shadcn tokens the login card uses. */
+@theme {
+    --color-ketchup: oklch(0.56 0.21 29);
+    --color-ketchup-dark: oklch(0.45 0.18 29);
+    --color-mustard: oklch(0.85 0.17 85);
+    --color-mustard-dark: oklch(0.76 0.16 75);
+    --color-bun: oklch(0.975 0.02 85);
+    --color-grill: oklch(0.24 0.01 60);
+
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-nudge: nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+    50% { transform: translateY(-18px) rotate(var(--tilt, 0deg)); }
+}
+
+/* The "touch here" hand taps the screen. */
+@keyframes nudge {
+    0%, 100% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(10px) scale(0.92); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-float, .animate-nudge { animation: none; }
+}
+
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
