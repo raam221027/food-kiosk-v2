@@ -37,6 +37,8 @@ export function useAdminResource<T>(
   queryKey: readonly unknown[],
   queryFn: () => Promise<unknown>,
   fallback: T,
+  /** Poll every N ms, for live views such as the kitchen display. */
+  refetchInterval?: number,
 ): AdminResource<T> {
   const query = useQuery({
     queryKey,
@@ -44,6 +46,7 @@ export function useAdminResource<T>(
     // The endpoints 404 until the backend catches up; retrying just delays the
     // fallback render by several seconds.
     retry: false,
+    refetchInterval,
   })
 
   const resolved = query.isSuccess ? unwrap<T>(query.data) : null

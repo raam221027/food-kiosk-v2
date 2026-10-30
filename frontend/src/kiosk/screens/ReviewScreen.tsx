@@ -1,19 +1,32 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { ArrowLeft, LoaderCircle } from 'lucide-react'
+import { isAxiosError } from 'axios'
 
-import { formatCurrency } from '@/admin/utils/format'
+import { formatCurrency, toNumber } from '@/admin/utils/format'
 import { createOrder, type NewOrder } from '@/services/orderService'
 import FoodArt from '../components/FoodArt'
 import QuantityStepper from '../components/QuantityStepper'
 import { useMenu } from '../useMenu'
 import { countItems, lineTotal, roundMoney, subtotalOf, unitPrice, useOrder } from '../useOrder'
 
-/** Reads the order number from either a bare model or an API Resource (`{ data }`). */
-const orderNumberFrom = (payload: unknown): string | null => {
-  const record = payload as { order_number?: unknown; data?: { order_number?: unknown } } | null
-  const value = record?.order_number ?? record?.data?.order_number
-  return value === undefined || value === null ? null : String(value)
+interface CreatedOrder {
+  order_number?: string | number | null
+  /** Laravel sends decimals as strings, e.g. "17.35". */
+  total_amount?: string | number | null
+}
+
+/** Reads the created order from either a bare model or an API Resource (`{ data }`). */
+const createdOrderFrom = (payload: unknown): CreatedOrder => {
+  const record = payload as (CreatedOrder & { data?: CreatedOrder }) | null
+  return record?.data ?? record ?? {}
+}
+
+/** The first reason the API gave for refusing the order, e.g. an item that just sold out. */
+const rejectionFrom = (error: unknown): string | null => {
+  if (!isAxiosError(error) || error.response?.status !== 422) return null
+  const body = error.response.data as { message?: string; errors?: Record<string, string[]> }
+  return Object.values(body.errors ?? {})[0]?.[0] ?? body.message ?? 'Something in your order changed.'
 }
 
 /** A short number to call out at the counter when the API did not supply one. */
@@ -22,12 +35,13 @@ const localOrderNumber = () => String(Math.floor(100 + Math.random() * 900))
 /** "Is this everything?" — edit quantities, see the total, place the order. */
 const ReviewScreen = () => {
   const navigate = useNavigate()
-  const { restaurantId, categories, taxRate } = useMenu()
+  const { categories, taxRate } = useMenu()
   const orderType = useOrder((state) => state.orderType)
   const lines = useOrder((state) => state.lines)
   const setQuantity = useOrder((state) => state.setQuantity)
   const complete = useOrder((state) => state.complete)
   const [submitting, setSubmitting] = useState(false)
+  const [rejection, setRejection] = useState<string | null>(null)
 
   if (!orderType) return <Navigate to="/order" replace />
 
@@ -39,35 +53,42 @@ const ReviewScreen = () => {
 
   const placeOrder = async () => {
     setSubmitting(true)
+    setRejection(null)
     const order: NewOrder = {
-      restaurant_id: restaurantId,
       order_type: orderType,
       customer_name: 'Kiosk customer',
-      subtotal,
-      tax,
-      total_amount: total,
       items: lines.map((line) => ({
         product_id: line.product.id,
         variant_id: line.variant?.id ?? null,
-        product_name: line.variant ? `${line.product.name} (${line.variant.name})` : line.product.name,
         quantity: line.quantity,
-        price: unitPrice(line),
-        total_price: roundMoney(lineTotal(line)),
       })),
     }
 
-    // POST /orders does not exist on the backend yet. Rather than strand the
-    // customer, hand out a local number and flag the order as a demo so the
-    // confirmation screen can say it never reached the kitchen.
-    let number: string | null = null
+    let created: CreatedOrder = {}
     let isDemo = false
     try {
-      number = orderNumberFrom(await createOrder(order))
-    } catch {
+      created = createdOrderFrom(await createOrder(order))
+    } catch (error) {
+      // The kitchen refused something in the order: let the customer fix it.
+      const reason = rejectionFrom(error)
+      if (reason) {
+        setRejection(reason)
+        setSubmitting(false)
+        return
+      }
+      // The API is unreachable. Rather than strand the customer, hand out a
+      // local number and flag the order as a demo so the confirmation screen
+      // can say it never reached the kitchen.
       isDemo = true
     }
 
-    complete({ number: number ?? localOrderNumber(), type: orderType, total, isDemo })
+    complete({
+      number: created.order_number != null ? String(created.order_number) : localOrderNumber(),
+      type: orderType,
+      // The server's total is the one the counter will charge.
+      total: created.total_amount != null ? toNumber(created.total_amount) : total,
+      isDemo,
+    })
     navigate('/order/complete', { replace: true })
   }
 
@@ -139,6 +160,14 @@ const ReviewScreen = () => {
 
       {lines.length > 0 && (
         <footer className="border-t border-grill/10 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-8">
+          {rejection && (
+            <p
+              role="alert"
+              className="mx-auto mb-4 max-w-3xl rounded-2xl bg-ketchup/10 px-5 py-3 text-lg font-bold text-ketchup"
+            >
+              {rejection}
+            </p>
+          )}
           <div className="mx-auto flex max-w-3xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <dl className="grid grid-cols-[auto_auto] gap-x-8 gap-y-1 text-lg tabular-nums">
               <dt className="text-grill/60">

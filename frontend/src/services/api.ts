@@ -4,6 +4,9 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api
 
 const api = axios.create({
   baseURL: BASE_URL,
+  // Without a timeout a hung backend leaves queries pending forever and the
+  // kiosk never falls back to sample data.
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -22,6 +25,7 @@ const api = axios.create({
  */
 export const apiRoot = axios.create({
   baseURL: BASE_URL.replace(/\/api\/?$/, ""),
+  timeout: 10000,
   headers: {
     Accept: "application/json",
   },

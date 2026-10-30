@@ -60,7 +60,7 @@ const ConfirmationScreen = () => {
 
       {placed.isDemo && (
         <p className="max-w-md rounded-2xl bg-black/20 px-5 py-3 text-sm text-white/80">
-          Demo mode: the orders API isn’t available yet, so this order was not sent to the kitchen.
+          The kiosk couldn’t reach the kitchen, so this order was not sent. Please tell a staff member.
         </p>
       )}
 

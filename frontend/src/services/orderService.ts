@@ -5,22 +5,16 @@ export const getOrders = async () => {
     return response.data;
 }
 
+/** No prices: the backend works out every amount from the menu itself. */
 export interface NewOrderItem {
     product_id: number;
     variant_id: number | null;
-    product_name: string;
     quantity: number;
-    price: number;
-    total_price: number;
 }
 
 export interface NewOrder {
-    restaurant_id: number;
     order_type: 'dine-in' | 'take-out';
     customer_name: string;
-    subtotal: number;
-    tax: number;
-    total_amount: number;
     items: NewOrderItem[];
 }
 

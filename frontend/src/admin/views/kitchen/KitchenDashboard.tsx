@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CBadge,
   CButton,
@@ -18,7 +19,7 @@ import { useAdminResource } from '../../hooks/useAdminResource'
 import { sampleKitchenOrders } from '../../data/samples'
 import type { KitchenOrder, KitchenStatus } from '../../domain'
 import { humanize, minutesSince } from '../../utils/format'
-import { getKitchenData } from '@/services/kitchenService'
+import { getKitchenData, updateKitchenStatus } from '@/services/kitchenService'
 
 /** Board columns, in the order a ticket moves through them. */
 const COLUMNS: { status: KitchenStatus; title: string; color: string }[] = [
@@ -36,15 +37,26 @@ const NEXT_STATUS: Partial<Record<KitchenStatus, KitchenStatus>> = {
 /** A ticket sitting this long without moving needs attention. */
 const LATE_AFTER_MINUTES = 10
 
+/** How often the board checks for new kiosk orders. */
+const POLL_MS = 10_000
+
 const KitchenDashboard = () => {
+  const queryClient = useQueryClient()
   const { data, isFallback, refetch } = useAdminResource<KitchenOrder[]>(
     ['admin', 'kitchen'],
     getKitchenData,
     sampleKitchenOrders,
+    POLL_MS,
   )
 
-  // Status advances are local until the backend exposes a kitchen endpoint.
+  // Sample tickets have no server row to update, so their advances stay local.
   const [statusEdits, setStatusEdits] = useState<Record<number, KitchenStatus>>({})
+
+  const advanceTicket = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: KitchenStatus }) =>
+      updateKitchenStatus(id, status),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin', 'kitchen'] }),
+  })
 
   const tickets = useMemo(
     () => data.map((ticket) => ({ ...ticket, status: statusEdits[ticket.id] ?? ticket.status })),
@@ -56,8 +68,11 @@ const KitchenDashboard = () => {
 
   const advance = (ticket: KitchenOrder) => {
     const next = NEXT_STATUS[ticket.status]
-    if (next) {
+    if (!next) return
+    if (isFallback) {
       setStatusEdits((edits) => ({ ...edits, [ticket.id]: next }))
+    } else {
+      advanceTicket.mutate({ id: ticket.id, status: next })
     }
   }
 
@@ -169,7 +184,12 @@ const KitchenDashboard = () => {
                                 <CIcon icon={cilClock} className="me-1" />
                                 {waiting} min
                               </span>
-                              <CButton color={column.color} size="sm" onClick={() => advance(ticket)}>
+                              <CButton
+                                color={column.color}
+                                size="sm"
+                                disabled={advanceTicket.isPending}
+                                onClick={() => advance(ticket)}
+                              >
                                 {column.status === 'ready' ? 'Complete' : 'Advance'}
                               </CButton>
                             </div>
